@@ -29,7 +29,7 @@
 #include <strings.h>
 #include <string.h>
 #include <sys/stat.h>
-//#include <pthread.h>
+#include<fstream>
 #include <sys/wait.h>
 #include<thread>
 #include <stdlib.h>
@@ -479,6 +479,7 @@ void not_found(int client)
 /**********************************************************************/
 void serve_file(int client, const char *filename)
 {
+    std::fstream resource;
     FILE *resource = NULL;
     int numchars = 1;
     char buf[1024];
@@ -492,6 +493,7 @@ void serve_file(int client, const char *filename)
 
     //打开这个传进来的这个路径所指的文件
     resource = fopen(filename, "r");
+    resource = std::fstream::open(filename,std::ios::in);
     if (resource == NULL)
         not_found(client);
     else
