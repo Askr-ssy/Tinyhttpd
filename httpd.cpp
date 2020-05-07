@@ -32,7 +32,9 @@
 #include<fstream>
 #include <sys/wait.h>
 #include<thread>
+#include<iostream>
 #include <stdlib.h>
+#include<cassert>
 
 #define ISspace(x) isspace((int)(x))
 
@@ -40,7 +42,7 @@
 
 void accept_request(int);
 void bad_request(int);
-void cat(int, FILE *);
+void cat(int, std::fstream &);
 void cannot_execute(int);
 void error_die(const char *);
 void execute_cgi(int, const char *, const char *, const char *);
@@ -197,16 +199,18 @@ void bad_request(int client)
  * Parameters: the client socket descriptor
  *             FILE pointer for the file to cat */
 /**********************************************************************/
-void cat(int client, FILE *resource)
+void cat(int client, std::fstream &resource)
 {
-    char buf[1024];
+    char buf[1024]{0};
+    assert(resource.good());
 
     //从文件文件描述符中读取指定内容
-    fgets(buf, sizeof(buf), resource);
-    while (!feof(resource))
-    {
+    // resource.seekg(0,std::ios::beg);
+    // resource.get(buf,sizeof(buf));
+    while (!resource.eof())
+    {   
+        resource.get(buf,sizeof(buf));
         send(client, buf, strlen(buf), 0);
-        fgets(buf, sizeof(buf), resource);
     }
 }
 
@@ -480,7 +484,7 @@ void not_found(int client)
 void serve_file(int client, const char *filename)
 {
     std::fstream resource;
-    FILE *resource = NULL;
+    // FILE *resource = NULL;
     int numchars = 1;
     char buf[1024];
 
@@ -492,9 +496,9 @@ void serve_file(int client, const char *filename)
         numchars = get_line(client, buf, sizeof(buf));
 
     //打开这个传进来的这个路径所指的文件
-    resource = fopen(filename, "r");
-    resource = std::fstream::open(filename,std::ios::in);
-    if (resource == NULL)
+    
+    resource.open(filename,std::ios::in);
+    if (!resource.is_open())
         not_found(client);
     else
     {
@@ -504,7 +508,7 @@ void serve_file(int client, const char *filename)
         cat(client, resource);
     }
 
-    fclose(resource);
+    resource.close();
 }
 
 /**********************************************************************/
