@@ -8,12 +8,12 @@
 #include <strings.h>
 #include <string.h>
 #include <sys/stat.h>
-#include<fstream>
+#include <fstream>
 #include <sys/wait.h>
-#include<thread>
-#include<iostream>
+#include <thread>
+#include <iostream>
 #include <stdlib.h>
-#include<cassert>
+#include <cassert>
 
 #define ISspace(x) isspace((int)(x))
 
@@ -50,7 +50,7 @@ void accept_request(int client)
                     * program */
     char *query_string = NULL;
 
-        numchars = get_line(client, buf, sizeof(buf));
+    numchars = get_line(client, buf, sizeof(buf));
     i = 0;
     j = 0;
     while (!ISspace(buf[j]) && (i < sizeof(method) - 1))
@@ -61,20 +61,20 @@ void accept_request(int client)
     }
     method[i] = '\0';
 
-        if (strcasecmp(method, "GET") && strcasecmp(method, "POST"))
+    if (strcasecmp(method, "GET") && strcasecmp(method, "POST"))
     {
         unimplemented(client);
         return;
     }
 
-        if (strcasecmp(method, "POST") == 0)
+    if (strcasecmp(method, "POST") == 0)
         cgi = 1;
 
     i = 0;
-        while (ISspace(buf[j]) && (j < sizeof(buf)))
+    while (ISspace(buf[j]) && (j < sizeof(buf)))
         j++;
 
-        while (!ISspace(buf[j]) && (i < sizeof(url) - 1) && (j < sizeof(buf)))
+    while (!ISspace(buf[j]) && (i < sizeof(url) - 1) && (j < sizeof(buf)))
     {
         url[i] = buf[j];
         i++;
@@ -82,46 +82,46 @@ void accept_request(int client)
     }
     url[i] = '\0';
 
-        if (strcasecmp(method, "GET") == 0)
+    if (strcasecmp(method, "GET") == 0)
     {
-                query_string = url;
+        query_string = url;
 
-                while ((*query_string != '?') && (*query_string != '\0'))
+        while ((*query_string != '?') && (*query_string != '\0'))
             query_string++;
 
-                if (*query_string == '?')
+        if (*query_string == '?')
         {
-                        cgi = 1;
-                        *query_string = '\0';
-                        query_string++;
+            cgi = 1;
+            *query_string = '\0';
+            query_string++;
         }
     }
 
-        sprintf(path, "htdocs%s", url);
+    sprintf(path, "htdocs%s", url);
 
-        if (path[strlen(path) - 1] == '/')
+    if (path[strlen(path) - 1] == '/')
         strcat(path, "index.html");
 
-        if (stat(path, &st) == -1)
+    if (stat(path, &st) == -1)
     {
-                while ((numchars > 0) && strcmp("\n", buf)) /* read & discard headers */
+        while ((numchars > 0) && strcmp("\n", buf)) /* read & discard headers */
             numchars = get_line(client, buf, sizeof(buf));
-                not_found(client);
+        not_found(client);
     }
     else
     {
-                        if ((st.st_mode & S_IFMT) == S_IFDIR)
-                        strcat(path, "/index.html");
+        if ((st.st_mode & S_IFMT) == S_IFDIR)
+            strcat(path, "/index.html");
 
-                if ((st.st_mode & S_IXUSR) ||
+        if ((st.st_mode & S_IXUSR) ||
             (st.st_mode & S_IXGRP) ||
             (st.st_mode & S_IXOTH))
-                        cgi = 1;
+            cgi = 1;
 
         if (!cgi)
-                        serve_file(client, path);
+            serve_file(client, path);
         else
-                        execute_cgi(client, path, method, query_string);
+            execute_cgi(client, path, method, query_string);
     }
 
     close(client);
@@ -159,9 +159,9 @@ void cat(int client, std::fstream &resource)
     char buf[1024]{0};
     assert(resource.good());
 
-        while (!resource.eof())
-    {   
-        resource.get(buf,sizeof(buf));
+    while (!resource.eof())
+    {
+        resource.get(buf, sizeof(buf));
         send(client, buf, strlen(buf), 0);
     }
 }
@@ -191,7 +191,7 @@ void cannot_execute(int client)
 /**********************************************************************/
 void error_die(const char *sc)
 {
-        perror(sc);
+    perror(sc);
     exit(1);
 }
 
@@ -214,22 +214,23 @@ void execute_cgi(int client, const char *path,
     int numchars = 1;
     int content_length = -1;
 
-        buf[0] = 'A';
+    buf[0] = 'A';
     buf[1] = '\0';
-        if (strcasecmp(method, "GET") == 0)
+    if (strcasecmp(method, "GET") == 0)
         while ((numchars > 0) && strcmp("\n", buf)) /* read & discard headers */
             numchars = get_line(client, buf, sizeof(buf));
     else /* POST */
     {
-                numchars = get_line(client, buf, sizeof(buf));
-                        while ((numchars > 0) && strcmp("\n", buf))
+        numchars = get_line(client, buf, sizeof(buf));
+        while ((numchars > 0) && strcmp("\n", buf))
         {
             buf[15] = '\0';
             if (strcasecmp(buf, "Content-Length:") == 0)
-                content_length = atoi(&(buf[16]));             numchars = get_line(client, buf, sizeof(buf));
+                content_length = atoi(&(buf[16]));
+            numchars = get_line(client, buf, sizeof(buf));
         }
 
-                if (content_length == -1)
+        if (content_length == -1)
         {
             bad_request(client);
             return;
@@ -239,7 +240,7 @@ void execute_cgi(int client, const char *path,
     sprintf(buf, "HTTP/1.0 200 OK\r\n");
     send(client, buf, strlen(buf), 0);
 
-        if (pipe(cgi_output) < 0)
+    if (pipe(cgi_output) < 0)
     {
         cannot_execute(client);
         return;
@@ -250,27 +251,27 @@ void execute_cgi(int client, const char *path,
         return;
     }
 
-        if ((pid = fork()) < 0)
+    if ((pid = fork()) < 0)
     {
         cannot_execute(client);
         return;
     }
 
-        if (pid == 0) /* child: CGI script */
+    if (pid == 0) /* child: CGI script */
     {
         char meth_env[255];
         char query_env[255];
         char length_env[255];
 
-                        dup2(cgi_output[1], 1);
-                dup2(cgi_input[0], 0);
-                close(cgi_output[0]);
+        dup2(cgi_output[1], 1);
+        dup2(cgi_input[0], 0);
+        close(cgi_output[0]);
         close(cgi_input[1]);
 
-                sprintf(meth_env, "REQUEST_METHOD=%s", method);
-                        putenv(meth_env);
+        sprintf(meth_env, "REQUEST_METHOD=%s", method);
+        putenv(meth_env);
 
-                if (strcasecmp(method, "GET") == 0)
+        if (strcasecmp(method, "GET") == 0)
         {
             sprintf(query_env, "QUERY_STRING=%s", query_string);
             putenv(query_env);
@@ -281,27 +282,27 @@ void execute_cgi(int client, const char *path,
             putenv(length_env);
         }
 
-                        execl(path, path, NULL);
+        execl(path, path, NULL);
         exit(0);
     }
     else
     { /* parent */
-                close(cgi_output[1]);
+        close(cgi_output[1]);
         close(cgi_input[0]);
 
-                if (strcasecmp(method, "POST") == 0)
+        if (strcasecmp(method, "POST") == 0)
             for (i = 0; i < content_length; i++)
             {
                 recv(client, &c, 1, 0);
                 write(cgi_input[1], &c, 1);
             }
 
-                while (read(cgi_output[0], &c, 1) > 0)
+        while (read(cgi_output[0], &c, 1) > 0)
             send(client, &c, 1, 0);
 
-                close(cgi_output[0]);
+        close(cgi_output[0]);
         close(cgi_input[1]);
-                waitpid(pid, &status, 0);
+        waitpid(pid, &status, 0);
     }
 }
 
@@ -326,13 +327,13 @@ int get_line(int sock, char *buf, int size)
 
     while ((i < size - 1) && (c != '\n'))
     {
-                        n = recv(sock, &c, 1, 0);
+        n = recv(sock, &c, 1, 0);
         /* DEBUG printf("%02X\n", c); */
         if (n > 0)
         {
             if (c == '\r')
             {
-                                n = recv(sock, &c, 1, MSG_PEEK);
+                n = recv(sock, &c, 1, MSG_PEEK);
                 /* DEBUG printf("%02X\n", c); */
                 if ((n > 0) && (c == '\n'))
                     recv(sock, &c, 1, 0);
@@ -407,22 +408,21 @@ void not_found(int client)
 void serve_file(int client, const char *filename)
 {
     std::fstream resource;
-        int numchars = 1;
+    int numchars = 1;
     char buf[1024];
 
-        buf[0] = 'A';
+    buf[0] = 'A';
     buf[1] = '\0';
-        while ((numchars > 0) && strcmp("\n", buf)) /* read & discard headers */
+    while ((numchars > 0) && strcmp("\n", buf)) /* read & discard headers */
         numchars = get_line(client, buf, sizeof(buf));
 
-        
-    resource.open(filename,std::ios::in);
+    resource.open(filename, std::ios::in);
     if (!resource.is_open())
         not_found(client);
     else
     {
-                headers(client, filename);
-                cat(client, resource);
+        headers(client, filename);
+        cat(client, resource);
     }
 
     resource.close();
@@ -439,29 +439,29 @@ void serve_file(int client, const char *filename)
 int startup(u_short *port)
 {
     int httpd = 0;
-        struct sockaddr_in name;
+    struct sockaddr_in name;
 
-            httpd = socket(PF_INET, SOCK_STREAM, 0);
+    httpd = socket(PF_INET, SOCK_STREAM, 0);
     if (httpd == -1)
         error_die("socket");
 
     memset(&name, 0, sizeof(name));
     name.sin_family = AF_INET;
-            name.sin_port = htons(*port);
-            name.sin_addr.s_addr = htonl(INADDR_ANY);
+    name.sin_port = htons(*port);
+    name.sin_addr.s_addr = htonl(INADDR_ANY);
 
-            if (bind(httpd, (struct sockaddr *)&name, sizeof(name)) < 0)
+    if (bind(httpd, (struct sockaddr *)&name, sizeof(name)) < 0)
         error_die("bind");
 
-        if (*port == 0) /* if dynamically allocating a port */
+    if (*port == 0) /* if dynamically allocating a port */
     {
         socklen_t namelen = sizeof(name);
-                        if (getsockname(httpd, (struct sockaddr *)&name, &namelen) == -1)
+        if (getsockname(httpd, (struct sockaddr *)&name, &namelen) == -1)
             error_die("getsockname");
         *port = ntohs(name.sin_port);
     }
 
-        if (listen(httpd, 5) < 0)
+    if (listen(httpd, 5) < 0)
         error_die("listen");
     return (httpd);
 }
@@ -500,24 +500,23 @@ int main(void)
     int server_sock = -1;
     u_short port = 4000;
     int client_sock = -1;
-        struct sockaddr_in client_name;
+    struct sockaddr_in client_name;
     socklen_t client_name_len = sizeof(client_name);
-    
+
     server_sock = startup(&port);
     printf("httpd running on port %d\n", port);
 
     while (1)
     {
-                client_sock = accept(server_sock,
+        client_sock = accept(server_sock,
                              (struct sockaddr *)&client_name,
                              &client_name_len);
         if (client_sock == -1)
             error_die("accept");
-        std::thread newthread(accept_request,client_sock);
+        std::thread newthread(accept_request, client_sock);
         newthread.detach();
     }
 
     close(server_sock);
-
     return (0);
 }
