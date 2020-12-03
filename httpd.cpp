@@ -15,6 +15,12 @@
 #include <stdlib.h>
 #include <cassert>
 
+// #include <nlohman/json.hpp>
+#include <nlohmann/json.hpp>
+
+//#include "mysql_connection.h"
+//#include<cppconn/
+
 #define ISspace(x) isspace((int)(x))
 
 #define SERVER_STRING "Server: jdbhttpd/0.1.0\r\n"
