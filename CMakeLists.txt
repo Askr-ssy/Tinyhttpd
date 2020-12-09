@@ -8,9 +8,13 @@ cmake_minimum_required(VERSION 3.0)
 set(CMAKE_CXX_STANDARD 11)
 
 include_directories("./include")
-add_executable(httpd httpd.cpp)
+#add_executable(httpd httpd.cpp)
+add_executable(test connmysql.cpp)
 
-target_link_libraries(httpd pthread)
+target_link_libraries(test mysqlcppconn)
+#find_package("mysql")
+#target_link_libraries(httpd pthread)
+
 #target_link_libraries(httpd private nlohmann_json)
 
 ## 尝试手动链接
